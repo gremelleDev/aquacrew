@@ -163,21 +163,15 @@ This project follows a **Feature Branching** workflow to ensure the `main` branc
 ## Project Status & Roadmap
 
 ### Current Status
-*   The project foundation is **fully configured** with React Native, TypeScript, and all core dependencies (Firebase, NativeWind, etc.).
-*   A stable development build workflow using `eas build` has been established and verified.
-*   The initial Expo template boilerplate has been **removed**, providing a clean slate for feature development. The example code is backed up in the `/app-example` directory for reference.
+*   Project foundation is clean, stable, and running on a device via a development build.
+*   **User Authentication flow is implemented and tested:**
+    *   UI for Sign-In and Sign-Up screens is complete.
+    *   Firebase Auth is integrated for user creation (`createUserWithEmailAndPassword`) and sign-in (`signInWithEmailAndPassword`).
+    *   Firestore is integrated to create a new `users` document upon successful sign-up.
 
 ### Immediate Next Steps (MVP v1.0)
-Our immediate goal is to build the core MVP feature set as defined in the Product Requirements Document. The very next step is to implement the user authentication flow.
+The current authentication flow is functional but lacks state management. The app does not yet "remember" the logged-in user or redirect them appropriately. The next tasks will address this:
 
-1.  **Core User Loop**:
-    *   Implement user authentication (Sign up / Login).
-    *   Build the onboarding flow (set hydration goal).
-    *   Develop the Home Screen with the core tracking mechanism and streak counter.
-2.  **Social Features**:
-    *   Implement Team creation and joining logic.
-    *   Build the Team Dashboard.
-    *   Develop the "Nudge" feature with push notifications.
-3.  **Gamification & Virality**:
-    *   Create the Achievements system and initial badge library.
-    *   Build the dynamic image sharing flow for achievements.
+1.  **Global State:** Create a Zustand store (`useAuthStore`) to manage the current user's session globally.
+2.  **Auth Listener:** Implement a global `onAuthStateChanged` listener to automatically update the store when a user logs in or out.
+3.  **Protected Routes:** Implement a router that checks the auth store and automatically navigates the user to the Home Screen if logged in, or the Sign-In screen if not.
