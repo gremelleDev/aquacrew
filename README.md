@@ -78,25 +78,78 @@ graph TD
 
 ### Getting Started: Running Locally
 
-To run this project on your local machine, you must have a complete React Native development environment set up.
+This project uses native libraries (like Firebase) and therefore requires a custom **Development Build** to run on a physical device or simulator. You cannot use the standard Expo Go app.
 
-1.  **Prerequisites:**
-    * Node.js (v18 or later) & npm
-    * Watchman (for macOS)
-    * A complete [React Native CLI development environment](https://reactnative.dev/docs/environment-setup), including Xcode (for iOS) and Android Studio (for Android).
+**1. Installation:**
 
-2.  **Installation:**
-    * Clone the repository: `git clone [repo-url]`
-    * Navigate into the project directory: `cd AquaCrew`
-    * Install dependencies: `npm install`
+*   Clone the repository: `git clone [repo-url]`
+*   Navigate into the project directory: `cd aquacrew`
+*   Install dependencies: `npm install`
 
-3.  **Running on a Simulator/Emulator:**
-    * **For iOS:** `npx react-native run-ios`
-    * **For Android:** `npx react-native run-android`
+**2. Create the Development Build (One-Time Setup):**
+
+This command uses Expo Application Services (EAS) to build a custom version of the app that includes all our native dependencies. This can take 10-15 minutes.
+
+npx eas build --profile development --platform android
+Use code with caution.
+Markdown
+(Use --platform ios for an iOS simulator build).
+After the build is complete, scan the resulting QR code with your device's camera to download and install the AquaCrew.apk file.
+
+**3. Run the Development Server:**
+This is the command you will run for daily development. It starts the Metro server that bundles your JavaScript code and serves it to your app.
+
+npx expo start --tunnel
+
+**4. Connect the App:**
+Open the AquaCrew app you installed on your phone.
+In the developer menu that appears, tap "Scan QR code".
+Scan the QR code shown in your terminal from the npx expo start command.
+The app will now connect to the server and load the project. Any changes you make to the code will appear instantly on your device.
+
 
 ---
 
-### Development Workflow
+### Troubleshooting
+Common issues and their solutions encountered during setup.
+
+### Error: Red screen with [BABEL] ... .plugins is not a valid Plugin property
+* Symptom: The app fails to load and shows a red error screen mentioning a Babel plugin error.
+* Cause: A version conflict between experimental versions of nativewind/tailwindcss (v4) and other stable libraries in the project.
+
+* Solution: This project is now pinned to stable versions. If this error re-appears, your node_modules are likely in a bad state. Fix it by reinstalling the correct versions:
+
+#### 1. Uninstall any incorrect versions
+```markdown
+npm uninstall tailwindcss nativewind
+```
+#### 2. Install the known stable versions
+```markdown
+npm install tailwindcss@3.3.2 nativewind@2.0.11
+```
+
+### Error: bash: eas: command not found
+* Symptom: Your terminal cannot find the eas command.
+
+* Cause: The eas-cli tool is installed locally to the project, not globally on your system.
+
+* Solution: Prefix the command with npx. This tells npm to run the version of the tool located inside your project's node_modules folder.
+```markdown
+Incorrect: eas build ...
+Correct: npx eas build ...
+```
+### Error: Bundling fails or app shows old code/errors
+* Symptom: The npx expo start command fails with a strange error, or the app shows an error that you believe you've already fixed.
+
+* Cause: The Metro bundler's cache has become stale or corrupted.
+
+* Solution: Use the --clear flag when starting the server to force it to rebuild its cache from scratch.
+```markdown
+npx expo start --tunnel --clear
+```
+---
+
+## Development Workflow
 
 This project follows a **Feature Branching** workflow to ensure the `main` branch remains stable and deployable at all times.
 
@@ -110,22 +163,21 @@ This project follows a **Feature Branching** workflow to ensure the `main` branc
 ## Project Status & Roadmap
 
 ### Current Status
-* Project initialized with React Native and TypeScript.
-* Core dependencies for Firebase, navigation, and styling have been installed.
-* Initial project documentation (`README.md`) is complete.
+*   The project foundation is **fully configured** with React Native, TypeScript, and all core dependencies (Firebase, NativeWind, etc.).
+*   A stable development build workflow using `eas build` has been established and verified.
+*   The initial Expo template boilerplate has been **removed**, providing a clean slate for feature development. The example code is backed up in the `/app-example` directory for reference.
 
 ### Immediate Next Steps (MVP v1.0)
-Our immediate goal is to build the core MVP feature set as defined in the Product Requirements Document.
+Our immediate goal is to build the core MVP feature set as defined in the Product Requirements Document. The very next step is to implement the user authentication flow.
 
-1.  **Firebase Integration**: Configure the native iOS and Android projects to connect to our Firebase backend.
-2.  **Core User Loop**:
-    * Implement user authentication (Sign up / Login).
-    * Build the onboarding flow (set hydration goal).
-    * Develop the Home Screen with the core tracking mechanism and streak counter.
-3.  **Social Features**:
-    * Implement Team creation and joining logic.
-    * Build the Team Dashboard.
-    * Develop the "Nudge" feature with push notifications.
-4.  **Gamification & Virality**:
-    * Create the Achievements system and initial badge library.
-    * Build the dynamic image sharing flow for achievements.
+1.  **Core User Loop**:
+    *   Implement user authentication (Sign up / Login).
+    *   Build the onboarding flow (set hydration goal).
+    *   Develop the Home Screen with the core tracking mechanism and streak counter.
+2.  **Social Features**:
+    *   Implement Team creation and joining logic.
+    *   Build the Team Dashboard.
+    *   Develop the "Nudge" feature with push notifications.
+3.  **Gamification & Virality**:
+    *   Create the Achievements system and initial badge library.
+    *   Build the dynamic image sharing flow for achievements.
