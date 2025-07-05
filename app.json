@@ -2,6 +2,7 @@
   "expo": {
     "name": "aquacrew",
     "slug": "aquacrew",
+    "owner": "aquacrew.app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -22,6 +23,11 @@
       "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "7f1aef6f-bf32-48d7-b3a8-d80bddde5978"
+      }
     },
     "plugins": [
       "expo-router",
