@@ -163,15 +163,22 @@ This project follows a **Feature Branching** workflow to ensure the `main` branc
 ## Project Status & Roadmap
 
 ### Current Status
-*   Project foundation is clean, stable, and running on a device via a development build.
-*   **User Authentication flow is implemented and tested:**
-    *   UI for Sign-In and Sign-Up screens is complete.
-    *   Firebase Auth is integrated for user creation (`createUserWithEmailAndPassword`) and sign-in (`signInWithEmailAndPassword`).
-    *   Firestore is integrated to create a new `users` document upon successful sign-up.
+*   **Foundation Stable:** The project is built on a clean Expo foundation. All dependencies are installed, and a working development build has been successfully tested.
+*   **Authentication Complete:** A complete, persistent authentication flow has been implemented on the `main` branch. This includes:
+    *   User sign-up with email/password and profile creation in Firestore.
+    *   User sign-in and sign-out.
+    *   Global state management (Zustand) and protected routing to handle the user's session state.
 
 ### Immediate Next Steps (MVP v1.0)
-The current authentication flow is functional but lacks state management. The app does not yet "remember" the logged-in user or redirect them appropriately. The next tasks will address this:
+With authentication complete, our next focus is the core user experience loop.
 
-1.  **Global State:** Create a Zustand store (`useAuthStore`) to manage the current user's session globally.
-2.  **Auth Listener:** Implement a global `onAuthStateChanged` listener to automatically update the store when a user logs in or out.
-3.  **Protected Routes:** Implement a router that checks the auth store and automatically navigates the user to the Home Screen if logged in, or the Sign-In screen if not.
+1.  **Onboarding Flow:**
+    *   Build the post-signup screen where a new user sets their `username` and chooses a daily hydration goal.
+    *   Save this information to their user document in Firestore.
+2.  **Home Screen UI:**
+    *   Build the main Home Screen UI as defined in the PRD.
+    *   Create the primary visual for daily progress (e.g., a filling circle).
+    *   Implement the "+" button to log water intake.
+    *   Display the user's current streak.
+3.  **UI/UX Polish (Future Task):**
+    *   Add a "show/hide" password toggle icon to the password input fields on the auth screens.
