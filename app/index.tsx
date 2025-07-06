@@ -25,7 +25,7 @@ export default function Index() {
       {/* Sign Out Button */}
       <TouchableOpacity
         onPress={onSignOutPressed}
-        className="bg-coral-accent p-4 rounded-lg items-center w-4/5">
+        className="bg-aqua-splash p-4 rounded-lg items-center w-4/5">
         <Text className="text-white font-bold text-lg">Sign Out</Text>
       </TouchableOpacity>
     </View>
