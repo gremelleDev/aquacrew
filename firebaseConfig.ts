@@ -1,7 +1,6 @@
 // firebaseConfig.ts
-import { FirebaseOptions } from '@react-native-firebase/app';
 
-export const firebaseConfig: FirebaseOptions = {
+export const firebaseConfig = {
     apiKey: "AIzaSyCkFVm2ipWJkz1DZ77q9lbr3qjQ7vwTvY8",
     authDomain: "aquacrew-9ff87.firebaseapp.com",
     projectId: "aquacrew-9ff87",
