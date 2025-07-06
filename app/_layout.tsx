@@ -3,7 +3,7 @@
 // This import must be at the very top
 import 'expo-dev-client';
 
-import { Stack, Redirect } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import { useEffect } from 'react';
@@ -16,6 +16,8 @@ export default function RootLayout() {
   const { setUser } = useAuthStore();
   const isLoading = useAuthStore((state) => state.isLoading);
   const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+  const segments = useSegments();
+  const router = useRouter();     
   
   // This useEffect hook sets up the Firebase auth listener.
   // It runs only once when the app starts.
@@ -37,6 +39,25 @@ export default function RootLayout() {
     return () => unsubscribe();
   }, [setUser]); // The hook depends on the setUser function.
 
+  // This useEffect hook handles all navigation logic.
+  // It runs whenever the user's login status or the current screen changes.
+  useEffect(() => {
+    // Don't run this logic until the initial loading is complete.
+    if (isLoading) return;
+
+    const inAuthGroup = segments[0] === '(auth)';
+
+    if (isLoggedIn && inAuthGroup) {
+      // If the user is logged in, but somehow on a sign-in/sign-up screen,
+      // redirect them to the main app home screen.
+      router.replace('/');
+    } else if (!isLoggedIn && !inAuthGroup) {
+      // If the user is NOT logged in and is NOT on an auth screen,
+      // redirect them to the sign-in screen.
+      router.replace('/(auth)/sign-in');
+    }
+  }, [isLoading, isLoggedIn, segments, router]);
+
   if (isLoading) {
     // Show a loading indicator while we check for a logged-in user
     return (
@@ -49,14 +70,11 @@ export default function RootLayout() {
   // This is the root layout for the entire app.
   return (
     <>
-      <Stack screenOptions={{ headerShown: false }}>
-        {isLoggedIn ? (
-          // If logged in, show the main app screen (index).
-          <Stack.Screen name="index" />
-        ) : (
-          // If not logged in, show the auth screens.
-      <Stack.Screen name="(auth)" />
-        )}
+      <Stack>
+        {/* The '(auth)' group contains our sign-in/sign-up screens. */}
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        {/* The main app screen. */}
+        <Stack.Screen name="index" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="auto" />
     </>
