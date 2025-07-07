@@ -134,3 +134,52 @@ await db.collection('users').doc(uid).set({
   * Use code [with caution](https://support.google.com/legal/answer/13505487).TypeScript  
   *   
 * 
+
+---
+### 6\. JavaScript Bundling Error: Resolving the `tslib` `__extends` Error
+
+* **Problem:** The app fails to build, and the Metro terminal shows a `TypeError: Cannot destructure property ‘__extends’ of tslib.js`.
+* **Symptom:** The Metro bundler logs the `tslib` error and fails to serve the JavaScript bundle.
+* **Cause:** The Metro bundler is incorrectly resolving the main `tslib.js` file from the `tslib` dependency instead of the correct ES6 module version, which contains the proper exports.
+* **Solution:** Create a `metro.config.js` file in the project root and add an `alias` to force the bundler to use the correct `tslib.es6.js` file.
+    ```javascript
+    // metro.config.js
+    const { getDefaultConfig } = require('@expo/metro-config');
+    const config = getDefaultConfig(__dirname);
+    
+    config.resolver.sourceExts.push('cjs');
+    config.resolver.unstable_enablePackageExports = false;
+    
+    // Add this alias to fix the tslib error
+    config.resolver.alias = {
+      tslib: 'tslib/tslib.es6.js',
+    };
+    
+    module.exports = config;
+    ```
+*
+
+### 7\. Native Module Error: Fixing `AsyncStorage is null`
+
+* **Problem:** The app crashes on launch after adding a new dependency that contains native code.
+* **Symptom:** The app shows a red screen error `[@RNC/AsyncStorage]: NativeModule: AsyncStorage is null.`
+* **Cause:** This error has two common causes:
+    1. The version of the native dependency (e.g., `@react-native-async-storage/async-storage`) is incompatible with the installed Expo SDK version.
+    2. The development build installed on the device is outdated and does not contain the native code for the newly added dependency.
+* **Solution:** This is a two-step process.
+    1.  First, run `npx expo install --check` to fix any version mismatches. This command ensures all native dependencies use versions that are compatible with your Expo SDK.
+    2.  Then, create and install a new development build by running `npx eas build --profile development --platform android`. This step bundles the new, corrected native code into the application `.apk` file.
+*
+
+### 8\. TypeScript Errors: Resolving Stubborn Firebase Errors
+
+* **Problem:** TypeScript persistently reports errors like `Module '"firebase/auth"' has no exported member 'getReactNativePersistence'`, even when all configurations and code appear to be correct.
+* **Symptom:** The code editor shows red squiggly lines and reports TypeScript errors that prevent a clean build, even if workarounds like `@ts-ignore` are used.
+* **Cause:** The local `node_modules` directory or the npm cache is in a corrupted state. This prevents the TypeScript server from correctly reading the `firebase` package's type definition files.
+* **Solution:** Perform a "clean slate" re-installation of all project dependencies. This removes any possibility of a bad cache or corrupted file and is the definitive way to fix a broken local environment.
+    1.  `npm uninstall firebase`
+    2.  `npm cache clean --force`
+    3.  `rm -rf node_modules package-lock.json`
+    4.  `npm install`
+    5.  Restart your code editor after the installation is complete.
+*
