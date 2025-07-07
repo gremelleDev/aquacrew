@@ -1,12 +1,19 @@
 // app/index.tsx
 import { authInstance } from '../src/firebase';
 import { useAuthStore } from '../src/stores/useAuthStore';
-import React from 'react';
+import React, {useEffect} from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 
 export default function Index() {
   // Get the current user from our global store
-  const user = useAuthStore((state) => state.user);
+  const profile = useAuthStore((state) => state.profile);
+
+  // Add this useEffect for testing
+  useEffect(() => {
+    console.log('🔥 Firebase Auth connected:', !!authInstance);
+    console.log('👤 Current user:', authInstance.currentUser?.email || 'Not logged in');
+    console.log('📱 Profile from store:', profile);
+  }, [profile]);
 
   // Function to handle the sign-out press
   const onSignOutPressed = () => {
@@ -19,7 +26,7 @@ export default function Index() {
       
       {/* Display the user's UID if they are logged in */}
       <Text className="text-lg mb-8">
-        {user ? `Logged in as: ${user.uid}` : 'Not logged in'}
+        {profile ? `Logged in as: ${profile.username} (${profile.email})` : 'Not logged in'}
       </Text>
 
       {/* Sign Out Button */}
