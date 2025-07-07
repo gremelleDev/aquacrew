@@ -54,7 +54,8 @@ export default function OnboardingScreen() {
         value={username}
         onChangeText={setUsername}
         placeholder="Choose a Username"
-        className="w-4/5 bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4 text-lg text-gray-900 placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"        keyboardType="email-address"
+        className="w-4/5 bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4 text-lg text-gray-900 placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"        
+        keyboardType="email-address"
         autoCapitalize="none"
       />
 
@@ -63,7 +64,7 @@ export default function OnboardingScreen() {
         value={hydrationGoal}
         onChangeText={setHydrationGoal}
         placeholder="Daily Hydration Goal (in ml)"
-        className="w-4/5 bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4 text-lg text-gray-900 placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"        keyboardType="email-address"
+        className="w-4/5 bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4 text-lg text-gray-900 placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"        
         keyboardType="number-pad"
       />
 

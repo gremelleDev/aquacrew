@@ -67,7 +67,8 @@ export default function SignUpScreen() {
         value={email}
         onChangeText={setEmail}
         placeholder="Email"
-        className="w-4/5 bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4 text-lg text-gray-900 placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"        keyboardType="email-address"
+        className="w-4/5 bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4 text-lg text-gray-900 placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"        
+        keyboardType="email-address"
         autoCapitalize="none"
       />
 
@@ -76,7 +77,8 @@ export default function SignUpScreen() {
         value={password}
         onChangeText={setPassword}
         placeholder="Password"
-        className="w-4/5 bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4 text-lg text-gray-900 placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"        secureTextEntry // Hides the password input
+        className="w-4/5 bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4 text-lg text-gray-900 placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"        
+        secureTextEntry // Hides the password input
       />
 
       {/* Sign Up Button */}

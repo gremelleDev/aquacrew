@@ -156,29 +156,24 @@ This project follows a **Feature Branching** workflow to ensure the `main` branc
 1.  **Create a New Branch**: For any new feature or bug fix, create a new, descriptive branch from `main` (e.g., `feat/user-onboarding` or `fix/streak-counter-bug`).
 2.  **Develop in Isolation**: All work for the feature should be done on this branch.
 3.  **Open a Pull Request**: Once the feature is complete and tested, open a Pull Request to merge the feature branch back into `main`. This allows for code review and discussion.
-4.  **Automated Deployments**: Our GitHub Actions workflow will automatically deploy backend changes (Cloud Functions, Security Rules) upon merging to `main`.
 
 ---
 
-## Project Status & Roadmap
+### Project Status & Roadmap
 
-### Current Status
-*   **Foundation Stable:** The project is built on a clean Expo foundation. All dependencies are installed, and a working development build has been successfully tested.
-*   **Authentication Complete:** A complete, persistent authentication flow has been implemented on the `main` branch. This includes:
-    *   User sign-up with email/password and profile creation in Firestore.
-    *   User sign-in and sign-out.
-    *   Global state management (Zustand) and protected routing to handle the user's session state.
+#### Current Status
+* **Foundation Stable:** The project's foundation is stable and correctly configured.
+* **Authentication Complete:** Includes sign-up, sign-in, and session persistence.
+* **Onboarding Complete:** A one-time flow for new users to set up their profile.
+* **Home Screen v1 Complete:** The home screen UI is built and connected to Firestore for real-time progress tracking.
 
-### Immediate Next Steps (MVP v1.0)
-With authentication complete, our next focus is the core user experience loop.
-
-1.  **Onboarding Flow:**
-    *   Build the post-signup screen where a new user sets their `username` and chooses a daily hydration goal.
-    *   Save this information to their user document in Firestore.
-2.  **Home Screen UI:**
-    *   Build the main Home Screen UI as defined in the PRD.
-    *   Create the primary visual for daily progress (e.g., a filling circle).
-    *   Implement the "+" button to log water intake.
-    *   Display the user's current streak.
+#### Immediate Next Steps (MVP v1.0)
+1.  **Streak Logic:**
+    * Create a Cloud Function to calculate and update the user's daily streak.
+    * Display the live streak value on the home screen.
+2.  **Team Goal / Social Tracking:**
+    * Design the Firestore data model for teams.
+    * Build the UI for creating and joining a team.
+    * Implement the "Team Goal" progress view on the home screen.
 3.  **UI/UX Polish (Future Task):**
-    *   Add a "show/hide" password toggle icon to the password input fields on the auth screens.
+    * Add a "show/hide" password toggle icon to the auth screens.
