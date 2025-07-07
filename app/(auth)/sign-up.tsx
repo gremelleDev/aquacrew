@@ -3,7 +3,8 @@
 import { Link } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { signUp, db, FieldValue } from '../../src/firebase'; // Import signUp and firestore
+import { signUp, db, serverTimestamp } from '../../src/firebase'; // Import signUp and firestore
+import { doc, setDoc } from 'firebase/firestore'; 
 
 /**
  * Note for Sr. Dev:
@@ -16,7 +17,6 @@ import { signUp, db, FieldValue } from '../../src/firebase'; // Import signUp an
  */
 export default function SignUpScreen() {
   // State for the form inputs
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false); // Add this line
@@ -24,7 +24,7 @@ export default function SignUpScreen() {
   // Function for the sign-up button press
   const onSignUpPressed = async () => {
     // Basic validation
-    if (!username || !email || !password) {
+    if (!email || !password) {
       Alert.alert('Missing Information', 'Please fill out all fields.');
       return;
     }
@@ -41,12 +41,12 @@ export default function SignUpScreen() {
   
       if (user) {
         // 2. Create the user document in Firestore with the user's UID
-        await db.collection('users').doc(user.uid).set({
-            username: username,
-            email: email,
-            hydrationGoal: 2000, // Default goal (2L), as per PRD
-            createdAt: FieldValue.serverTimestamp(),
-        });
+        await setDoc(doc(db, 'users', user.uid), {
+          email: email,
+          hydrationGoal: 2000, // Default goal (2L), as per PRD
+          createdAt: serverTimestamp(),
+          onboardingComplete: false, // <-- Add this line
+      });
   
         console.log('User signed up and profile created!', user.uid);
         // In a future step, we'll redirect the user.
@@ -61,14 +61,6 @@ export default function SignUpScreen() {
   return (
     <View className="flex-1 justify-center items-center bg-white p-4">
       <Text className="text-4xl font-bold mb-8 text-gray-800">Create Account</Text>
-
-      {/* Username Input */}
-      <TextInput
-        value={username}
-        onChangeText={setUsername}
-        placeholder="Username"
-        className="w-4/5 bg-gray-100 border border-gray-300 rounded-lg p-4 mb-4 text-lg text-gray-900 placeholder:text-gray-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder:text-gray-400"        autoCapitalize="none"
-      />
 
       {/* Email Input */}
       <TextInput

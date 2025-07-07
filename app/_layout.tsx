@@ -3,6 +3,7 @@
 // This import must be at the very top
 import 'expo-dev-client';
 
+import { doc, getDoc } from 'firebase/firestore';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
@@ -13,7 +14,7 @@ import { useAuthStore, type UserProfile } from '../src/stores/useAuthStore'; // 
 
 export default function RootLayout() {
   // Get the setUser action from our auth store
-  const { setProfile, isLoading, isLoggedIn } = useAuthStore();
+  const { setProfile, isLoading, isLoggedIn, profile } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();     
   
@@ -24,12 +25,15 @@ export default function RootLayout() {
     const unsubscribe = authInstance.onAuthStateChanged(async (user) => {
       if (user) {
         // User is logged in, now fetch their profile from Firestore.
-        const userDocRef = db.collection('users').doc(user.uid);
-        const docSnap = await userDocRef.get();
+        const userDocRef = doc(db, 'users', user.uid);
+        const docSnap = await getDoc(userDocRef);
   
         if (docSnap.exists()) {
           // User profile found in Firestore, set it in the store.
-          const userProfile = docSnap.data() as UserProfile;
+          const userProfile = {
+            uid: user.uid, // Explicitly add the UID from the auth user
+            ...docSnap.data(),
+          } as UserProfile;
           setProfile(userProfile);
         } else {
           // This is a rare case, e.g., user exists in Auth but not Firestore.
@@ -48,23 +52,26 @@ export default function RootLayout() {
   }, [setProfile]);
 
   // This useEffect hook handles all navigation logic.
-  // It runs whenever the user's login status or the current screen changes.
+  // It runs whenever the user's login status or the current screen changes. 
   useEffect(() => {
-    // Don't run this logic until the initial loading is complete.
     if (isLoading) return;
 
     const inAuthGroup = segments[0] === '(auth)';
+    const inOnboardingGroup = segments[0] === '(onboarding)';
 
-    if (isLoggedIn && inAuthGroup) {
-      // If the user is logged in, but somehow on a sign-in/sign-up screen,
-      // redirect them to the main app home screen.
+    // The user is logged in but hasn't completed onboarding
+    if (isLoggedIn && !profile?.onboardingComplete && !inOnboardingGroup) {
+      router.replace('/(onboarding)');
+    } 
+    // The user is logged in AND has completed onboarding
+    else if (isLoggedIn && profile?.onboardingComplete && (inAuthGroup || inOnboardingGroup)) {
       router.replace('/');
-    } else if (!isLoggedIn && !inAuthGroup) {
-      // If the user is NOT logged in and is NOT on an auth screen,
-      // redirect them to the sign-in screen.
+    } 
+    // The user is not logged in
+    else if (!isLoggedIn && !inAuthGroup) {
       router.replace('/(auth)/sign-in');
     }
-  }, [isLoading, isLoggedIn, segments, router]);
+  }, [isLoading, isLoggedIn, profile, segments, router]);
 
   if (isLoading) {
     // Show a loading indicator while we check for a logged-in user
