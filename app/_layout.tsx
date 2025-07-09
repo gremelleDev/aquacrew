@@ -95,6 +95,8 @@ export default function RootLayout() {
       <Stack>
         {/* The '(auth)' group contains our sign-in/sign-up screens. */}
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        {/* The '(onboarding)' group contains our profile setup screen. */}
+        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
         {/* The main app screen. */}
         <Stack.Screen name="index" options={{ headerShown: false }} />
       </Stack>
