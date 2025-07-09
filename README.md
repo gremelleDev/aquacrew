@@ -110,44 +110,6 @@ The app will now connect to the server and load the project. Any changes you mak
 
 ---
 
-### Troubleshooting
-Common issues and their solutions encountered during setup.
-
-### Error: Red screen with [BABEL] ... .plugins is not a valid Plugin property
-* Symptom: The app fails to load and shows a red error screen mentioning a Babel plugin error.
-* Cause: A version conflict between experimental versions of nativewind/tailwindcss (v4) and other stable libraries in the project.
-
-* Solution: This project is now pinned to stable versions. If this error re-appears, your node_modules are likely in a bad state. Fix it by reinstalling the correct versions:
-
-#### 1. Uninstall any incorrect versions
-```markdown
-npm uninstall tailwindcss nativewind
-```
-#### 2. Install the known stable versions
-```markdown
-npm install tailwindcss@3.3.2 nativewind@2.0.11
-```
-
-### Error: bash: eas: command not found
-* Symptom: Your terminal cannot find the eas command.
-
-* Cause: The eas-cli tool is installed locally to the project, not globally on your system.
-
-* Solution: Prefix the command with npx. This tells npm to run the version of the tool located inside your project's node_modules folder.
-```markdown
-Incorrect: eas build ...
-Correct: npx eas build ...
-```
-### Error: Bundling fails or app shows old code/errors
-* Symptom: The npx expo start command fails with a strange error, or the app shows an error that you believe you've already fixed.
-
-* Cause: The Metro bundler's cache has become stale or corrupted.
-
-* Solution: Use the --clear flag when starting the server to force it to rebuild its cache from scratch.
-```markdown
-npx expo start --tunnel --clear
-```
----
 
 ## Development Workflow
 
@@ -166,14 +128,128 @@ This project follows a **Feature Branching** workflow to ensure the `main` branc
 * **Authentication Complete:** Includes sign-up, sign-in, and session persistence.
 * **Onboarding Complete:** A one-time flow for new users to set up their profile.
 * **Home Screen v1 Complete:** The home screen UI is built and connected to Firestore for real-time progress tracking.
+* **Streak Logic Complete:** ✅ Cloud Function deployed for real-time streak calculation with milestone celebrations.
+* **Code Architecture:** ✅ Refactored to clean hook-based architecture with separation of concerns.
+
+#### Critical Next Steps (Blaze Plan Requirements)
+1.  **Usage Monitoring & Cost Control (PRIORITY):**
+    * Deploy usage monitoring dashboard component
+    * Set up Firebase Console budget alerts ($1 threshold)
+    * Implement emergency killswitch functions
+    * Configure daily usage limits and automated alerts
+2.  **Testing & Validation:**
+    * Complete streak function testing with existing users
+    * Verify milestone celebrations work correctly
+    * Validate real-time updates and data consistency
 
 #### Immediate Next Steps (MVP v1.0)
-1.  **Streak Logic:**
-    * Create a Cloud Function to calculate and update the user's daily streak.
-    * Display the live streak value on the home screen.
-2.  **Team Goal / Social Tracking:**
+1.  **Team Goal / Social Tracking:**
     * Design the Firestore data model for teams.
     * Build the UI for creating and joining a team.
     * Implement the "Team Goal" progress view on the home screen.
-3.  **UI/UX Polish (Future Task):**
+2.  **UI/UX Polish:**
     * Add a "show/hide" password toggle icon to the auth screens.
+    * Improve loading states and error handling.
+
+#### Detailed Feature Roadmap
+
+##### Phase 1: Teams (Social Accountability)
+1. **Create/Join Team Flow:**
+   * Build UI for team creation with invite code generation
+   * Implement Firestore data model for teams and memberships
+   * Create join team flow with invite code validation
+   * Add team selection during onboarding process
+
+2. **Team Dashboard:**
+   * Display list of teammates with real-time daily progress
+   * Show team-wide hydration statistics and goals
+   * Implement team leaderboards and friendly competition
+   * Real-time sync of all team member progress
+
+3. **The "Nudge" Feature:**
+   * Add nudge button to teammate profiles
+   * Implement push notification logic for sending reminders
+   * Design notification templates and messaging
+   * Rate limiting to prevent spam (max nudges per day)
+
+##### Phase 2: Achievements & Sharing (Gamification & Virality)
+1. **Badge System:**
+   * Create Cloud Function logic for milestone badge awards
+   * Design badge categories (streaks, volumes, consistency, social)
+   * Implement badge unlock animations and celebrations
+   * Store badge achievements in user profiles
+
+2. **Achievements UI:**
+   * Build dedicated Achievements screen with badge grid
+   * Show locked/unlocked states with progress indicators
+   * Add badge detail views with earning criteria
+   * Implement achievement sharing to team feeds
+
+3. **Social Sharing Flow:**
+   * Dynamic image generation for badge achievements
+   * Social media sharing integration (Instagram, Twitter, Facebook)
+   * Customizable sharing templates and messaging
+   * Track viral coefficient and sharing analytics
+
+##### Phase 3: Monetization (Post-MVP)
+1. **Premium Features:**
+   * Custom water amount tracking (beyond 250ml increments)
+   * Advanced analytics and insights dashboard
+   * Premium badge designs and exclusive achievements
+   * Ad-free experience for paid users
+
+2. **In-App Purchases:**
+   * "Streak Shields" - protect streaks during missed days
+   * Cosmetic themes and app customization options
+   * Premium team features (larger teams, advanced stats)
+   * Early access to new features and beta testing
+
+3. **Subscription Tiers:**
+   * Free tier: Basic tracking, 4-person teams, standard badges
+   * Premium tier: Advanced features, unlimited team size, premium content
+   * Team tier: Organization-wide deployments and admin controls
+
+##### Phase 4: Advanced Features (Long-term)
+1. **Smart Notifications:**
+   * AI-powered personalized reminder timing
+   * Weather-based hydration goal adjustments
+   * Integration with health apps and wearables
+   * Predictive analytics for optimal hydration patterns
+
+2. **Community Features:**
+   * Public leaderboards and competitions
+   * Hydration challenges and events
+   * User-generated content and tips sharing
+   * Expert nutritionist content and advice
+
+3. **Platform Expansion:**
+   * Web dashboard for detailed analytics
+   * Apple Watch and fitness tracker integration
+   * Corporate wellness program features
+   * API for third-party health app integrations
+
+#### Technical Roadmap
+
+##### Immediate (Next 2 weeks)
+* ✅ Streak calculation Cloud Functions
+* 🔄 Usage monitoring and cost control systems
+* 🔄 Emergency killswitch implementation
+* 📋 Comprehensive testing of streak functionality
+
+##### Short-term (1-2 months)
+* Firestore security rules for team features
+* Push notification infrastructure setup
+* Image generation service for social sharing
+* Performance monitoring and optimization
+
+##### Medium-term (3-6 months)
+* Cloud Functions refactoring into modular services
+* Automated testing suite implementation
+* CI/CD pipeline setup with staging environment
+* Database optimization and indexing strategy
+
+##### Long-term (6+ months)
+* Microservices architecture for scale
+* Advanced caching and CDN implementation
+* Multi-region deployment for global performance
+* Real-time analytics and business intelligence dashboard

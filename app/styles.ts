@@ -18,5 +18,34 @@ export const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  menuContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
+  menuButton: {
+    width: '100%',
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    alignItems: 'center',
+  },
+  menuButtonText: {
+    fontSize: 18,
+    color: 'refresh-blue', // A standard blue for actions
+  },
+  closeButtonText: {
+    fontSize: 18,
+    color: 'coral-accent', // A standard red for close/cancel actions
+    fontWeight: 'bold',
+  },
   // ... you could add other styles here
 });

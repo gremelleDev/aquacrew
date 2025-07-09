@@ -3,7 +3,7 @@
 // This import must be at the very top
 import 'expo-dev-client';
 
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
@@ -20,36 +20,43 @@ export default function RootLayout() {
   
   // This useEffect hook sets up the Firebase auth listener.
   // It runs only once when the app starts.
-  useEffect(() => {
-    // onAuthStateChanged returns an "unsubscribe" function.
-    const unsubscribe = authInstance.onAuthStateChanged(async (user) => {
-      if (user) {
-        // User is logged in, now fetch their profile from Firestore.
-        const userDocRef = doc(db, 'users', user.uid);
-        const docSnap = await getDoc(userDocRef);
-  
-        if (docSnap.exists()) {
-          // User profile found in Firestore, set it in the store.
-          const userProfile = {
-            uid: user.uid, // Explicitly add the UID from the auth user
-            ...docSnap.data(),
-          } as UserProfile;
-          setProfile(userProfile);
+    // useEffect with real-time listener
+    useEffect(() => {
+      // This will hold the unsubscribe function for the profile listener
+      let unsubscribeFromProfile: () => void = () => {};
+
+      // This listener handles auth state changes (login/logout)
+      const unsubscribeFromAuth = authInstance.onAuthStateChanged(user => {
+        // Unsubscribe from any old profile listener
+        unsubscribeFromProfile();
+
+        if (user) {
+          // If user is logged in, set up a real-time listener for their profile
+          const userDocRef = doc(db, 'users', user.uid);
+          unsubscribeFromProfile = onSnapshot(userDocRef, (docSnap) => {
+            if (docSnap.exists()) {
+              const userProfile = {
+                uid: user.uid,
+                ...docSnap.data(),
+              } as UserProfile;
+              setProfile(userProfile);
+            } else {
+              console.warn('User exists in Auth, but not in Firestore.');
+              setProfile(null);
+            }
+          });
         } else {
-          // This is a rare case, e.g., user exists in Auth but not Firestore.
-          // For now, treat them as logged out. We can handle this case later.
-          console.warn('User exists in Auth, but not in Firestore.');
+          // User is logged out
           setProfile(null);
         }
-      } else {
-        // User is logged out.
-        setProfile(null);
-      }
-    });
-  
-    // Cleanup function.
-    return () => unsubscribe();
-  }, [setProfile]);
+      });
+
+      // Final cleanup function runs when the app closes
+      return () => {
+        unsubscribeFromAuth();
+        unsubscribeFromProfile();
+      };
+    }, [setProfile]); // Dependency array is unchanged
 
   // This useEffect hook handles all navigation logic.
   // It runs whenever the user's login status or the current screen changes. 
