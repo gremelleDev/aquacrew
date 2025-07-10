@@ -4,15 +4,26 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } fro
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../src/firebase';
 import { useAuthStore } from '../../src/stores/useAuthStore';
+import { useRouter } from 'expo-router';
+
 
 export default function OnboardingScreen() {
-  const profile = useAuthStore((state) => state.profile);
+  const profile = useAuthStore((state) => state.profile);  
+  //console.log('🔍 Onboarding sees profile:', profile?.onboardingComplete); 
+  // Debug line 1
+  //console.log('🔍 Onboarding full profile:', profile); 
+  // Debug line 2
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [hydrationGoal, setHydrationGoal] = useState('2000'); // Default 2000ml
   const [loading, setLoading] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const onContinuePressed = async () => {
+    console.log('🔍 Continue pressed, profile:', profile); // Debug line 3
+
     if (!profile) {
+      console.log('🔍 No profile found!'); // Debug line 4
       Alert.alert('Error', 'No user profile found.');
       return;
     }
@@ -29,6 +40,8 @@ export default function OnboardingScreen() {
     }
 
     setLoading(true);
+    setIsNavigating(true);
+
     try {
       const userDocRef = doc(db, 'users', profile.uid);
       await updateDoc(userDocRef, {
@@ -42,7 +55,16 @@ export default function OnboardingScreen() {
         unviewedMilestones: []
       });
       // The redirection will happen automatically from our _layout.tsx
+
+      // Navigate immediately after Firestore update
+      console.log('🔄 Onboarding navigation: Attempting to navigate to /'); // Add this line
+      setTimeout(() => {
+        router.replace('/');
+        console.log('✅ Onboarding navigation: Navigation command executed');
+      }, 200); // 200ms delay
+
     } catch (e) {
+      setIsNavigating(false);
       console.error("Error updating document: ", e);
       Alert.alert('Error', 'Could not save your profile. Please try again.');
     } finally {

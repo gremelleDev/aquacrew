@@ -3,7 +3,7 @@
 // This import must be at the very top
 import 'expo-dev-client';
 
-import { doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
@@ -16,7 +16,7 @@ export default function RootLayout() {
   // Get the setUser action from our auth store
   const { setProfile, isLoading, isLoggedIn, profile } = useAuthStore();
   const segments = useSegments();
-  const router = useRouter();     
+  const router = useRouter();
   
   // This useEffect hook sets up the Firebase auth listener.
   // It runs only once when the app starts.
@@ -27,6 +27,7 @@ export default function RootLayout() {
 
       // This listener handles auth state changes (login/logout)
       const unsubscribeFromAuth = authInstance.onAuthStateChanged(user => {
+        console.log('🔍 Auth state changed:', user ? user.uid : 'no user'); // Add this line
         // Unsubscribe from any old profile listener
         unsubscribeFromProfile();
 
@@ -34,11 +35,13 @@ export default function RootLayout() {
           // If user is logged in, set up a real-time listener for their profile
           const userDocRef = doc(db, 'users', user.uid);
           unsubscribeFromProfile = onSnapshot(userDocRef, (docSnap) => {
+            console.log('🔍 Firestore doc exists:', docSnap.exists()); // Add this line
             if (docSnap.exists()) {
               const userProfile = {
                 uid: user.uid,
                 ...docSnap.data(),
               } as UserProfile;
+              console.log('🔍 Profile data:', userProfile);
               setProfile(userProfile);
             } else {
               console.warn('User exists in Auth, but not in Firestore.');
@@ -66,19 +69,34 @@ export default function RootLayout() {
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
 
+    // Onboarding Redirection debug block
+    //console.log('🔍 Navigation check:', {
+    //  isLoggedIn,
+    //  onboardingComplete: profile?.onboardingComplete,
+    //  segments: segments[0],
+    //  inAuthGroup,
+    //  inOnboardingGroup
+    //}); 
+
     // The user is logged in but hasn't completed onboarding
     if (isLoggedIn && !profile?.onboardingComplete && !inOnboardingGroup) {
       router.replace('/(onboarding)');
     } 
     // The user is logged in AND has completed onboarding
-    else if (isLoggedIn && profile?.onboardingComplete && (inAuthGroup || inOnboardingGroup)) {
-      router.replace('/');
-    } 
+    //else if (isLoggedIn && profile?.onboardingComplete && (inAuthGroup || inOnboardingGroup)) {
+      // Navigation now handled by onboarding component itself
+      // This condition should not trigger if onboarding navigation works properly
+      //console.log('⚠️ Layout navigation triggered - this should not happen');
+    //} 
     // The user is not logged in
     else if (!isLoggedIn && !inAuthGroup) {
       router.replace('/(auth)/sign-in');
     }
   }, [isLoading, isLoggedIn, profile, segments, router]);
+
+  useEffect(() => {
+    console.log('📍 CURRENT ROUTE:', segments.join('/'));
+  }, [segments]);
 
   if (isLoading) {
     // Show a loading indicator while we check for a logged-in user

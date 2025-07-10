@@ -3,7 +3,7 @@ import { authInstance } from '../src/firebase';
 import { useAuthStore } from '../src/stores/useAuthStore';
 import React, {useEffect, useState} from 'react';
 import { Text, TouchableOpacity, View, Modal } from 'react-native';
-import { styles } from './styles';
+import { styles } from '../src/styles/appStyles';
 import { Feather } from '@expo/vector-icons';
 import CircularProgress from '../src/components/CircularProgress';
 import MilestoneModal from '../src/components/MilestoneModal';
@@ -11,6 +11,7 @@ import { useWaterTracking } from '../src/hooks/useWaterTracking';
 import { useMilestones } from '../src/hooks/useMilestones';
 
 export default function Index() {
+  console.log('🔍 Main app screen loading!'); // Add this line
   // Get the current user from our global store
   const profile = useAuthStore((state) => state.profile);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -35,7 +36,7 @@ export default function Index() {
   useEffect(() => {
     console.log('🔥 Firebase Auth connected:', !!authInstance);
     console.log('👤 Current user:', authInstance.currentUser?.email || 'Not logged in');
-    console.log('📱 Profile from store:', profile);
+    //console.log('📱 Profile from store:', profile);
   }, [profile]);
 
 
@@ -120,7 +121,6 @@ export default function Index() {
           </View>
         </TouchableOpacity>
       </Modal>
-      {/* Milestone Celebration Modal */}
       {/* Milestone Celebration Modal */}
       <MilestoneModal
         visible={showMilestoneModal}
