@@ -2,12 +2,10 @@
 import { initializeApp, getApps } from 'firebase/app';
   // @ts-ignore
 import {
-  initializeAuth,
-  getReactNativePersistence,
+  getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
 } from 'firebase/auth';
-import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { getFirestore, serverTimestamp } from 'firebase/firestore';
 import { firebaseConfig } from '../firebaseConfig';
 
@@ -16,10 +14,7 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 
 // This now initializes Auth with storage persistence
 
-export const authInstance = initializeAuth(app, {
-
-persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-});
+export const authInstance = getAuth(app);
 export const db = getFirestore(app);
 
 // Export serverTimestamp instead of FieldValue

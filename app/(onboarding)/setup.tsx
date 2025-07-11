@@ -1,35 +1,27 @@
 //app/(onboarding)/setup.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../src/firebase';
 import { useAuthStore } from '../../src/stores/useAuthStore';
 import { useRouter } from 'expo-router';
-import { useEffect } from 'react';
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const profile = useAuthStore((state) => state.profile);  
-  //console.log('🔍 Onboarding sees profile:', profile?.onboardingComplete); 
-  // Debug line 1
-  //console.log('🔍 Onboarding full profile:', profile); 
-  // Debug line 2
   const [username, setUsername] = useState('');
   const [hydrationGoal, setHydrationGoal] = useState('2000'); // Default 2000ml
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (profile?.onboardingComplete) {
-      console.log('🎉 Onboarding complete detected, navigating to home');
       router.replace('/');
     }
   }, [profile?.onboardingComplete, router]);
 
   const onContinuePressed = async () => {
-    console.log('🔍 Continue pressed, profile:', profile); // Debug line 3
 
     if (!profile) {
-      console.log('🔍 No profile found!'); // Debug line 4
       Alert.alert('Error', 'No user profile found.');
       return;
     }
@@ -73,7 +65,7 @@ export default function OnboardingScreen() {
   return (
     <View className="flex-1 justify-center items-center bg-white p-4">
       <Text className="text-4xl font-bold mb-2 text-gray-800">Welcome to AquaCrew!</Text>
-      <Text className="text-lg mb-8 text-gray-600">Let's set up your profile.</Text>
+      <Text className="text-lg mb-8 text-gray-600">Let&apos;s set up your profile.</Text>
 
       {/* Username Input */}
       <TextInput

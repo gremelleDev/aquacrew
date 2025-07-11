@@ -10,11 +10,13 @@ import { ActivityIndicator, View } from 'react-native';
 import { useEffect } from 'react';
 import { authInstance,db } from '../src/firebase'; // Import our auth instance
 import { useAuthStore, type UserProfile } from '../src/stores/useAuthStore'; // Import our store
+import { useUsageMonitor } from '../src/hooks/useUsageMonitor';
 
 
 export default function RootLayout() {
   // Get the setUser action from our auth store
   const { setProfile, isLoading } = useAuthStore();
+  const { incrementUsage } = useUsageMonitor();
 
   
   // This useEffect hook sets up the Firebase auth listener.
@@ -26,7 +28,6 @@ export default function RootLayout() {
 
       // This listener handles auth state changes (login/logout)
       const unsubscribeFromAuth = authInstance.onAuthStateChanged(user => {
-        console.log('🔍 Auth state changed:', user ? user.uid : 'no user'); // Add this line
         // Unsubscribe from any old profile listener
         unsubscribeFromProfile();
 
@@ -34,13 +35,14 @@ export default function RootLayout() {
           // If user is logged in, set up a real-time listener for their profile
           const userDocRef = doc(db, 'users', user.uid);
           unsubscribeFromProfile = onSnapshot(userDocRef, (docSnap) => {
-            console.log('🔍 Firestore doc exists:', docSnap.exists()); // Add this line
+            // Track Firestore read operation
+            incrementUsage('reads', 1);
+            
             if (docSnap.exists()) {
               const userProfile = {
                 uid: user.uid,
                 ...docSnap.data(),
               } as UserProfile;
-              console.log('🔍 Profile data:', userProfile);
               setProfile(userProfile);
             } else {
               console.warn('User exists in Auth, but not in Firestore.');
@@ -58,7 +60,7 @@ export default function RootLayout() {
         unsubscribeFromAuth();
         unsubscribeFromProfile();
       };
-    }, [setProfile]); // Dependency array is unchanged
+    }, [setProfile, incrementUsage]); // Dependency array is unchanged
 
 
   if (isLoading) {

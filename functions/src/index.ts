@@ -35,8 +35,6 @@ export const calculateStreak = onDocumentWritten(
     
     const progressData = event.data.after.data() as DailyProgress;
 
-    // debugging to see if the Cloud Function is using the entire document data (event.data) as progressData
-    // console.log(`🔍 Progress data received:`, JSON.stringify(progressData));
     
     // Get user profile to check hydration goal
     const userRef = db.collection("users").doc(userId);

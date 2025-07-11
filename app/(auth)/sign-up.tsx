@@ -49,7 +49,6 @@ export default function SignUpScreen() {
           onboardingComplete: false, // <-- Add this line
       });
   
-        console.log('User signed up and profile created!', user.uid);
         // In a future step, we'll redirect the user.
         router.replace('/');
 

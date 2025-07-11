@@ -36,11 +36,11 @@ export default function SignInScreen() {
         if (user) {
             // We'll redirect from here in a future step
             router.replace('/');
-            console.log('User signed in successfully!', user.uid);        
           }
       }
-    } catch (e) {
+    } catch (error) {
       // Catch any other unexpected errors
+      console.error('Sign in error:', error);
       Alert.alert('Sign In Error', 'An unexpected error occurred.');
     } finally {
       setLoading(false); // Stop loading, regardless of outcome
@@ -83,7 +83,7 @@ export default function SignInScreen() {
       {/* Link to Sign Up Screen */}
       <Link href="/(auth)/sign-up" asChild>
         <TouchableOpacity className="mt-6">
-          <Text className="text-blue-500">Don't have an account? Sign Up</Text>
+          <Text className="text-blue-500">Don&apos;t have an account? Sign Up</Text>
         </TouchableOpacity>
       </Link>
     </View>
