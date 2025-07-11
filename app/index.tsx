@@ -1,8 +1,9 @@
 // app/index.tsx
 import { authInstance } from '../src/firebase';
 import { useAuthStore } from '../src/stores/useAuthStore';
+import { Redirect } from 'expo-router'; 
 import React, {useEffect, useState} from 'react';
-import { Text, TouchableOpacity, View, Modal } from 'react-native';
+import { Text, TouchableOpacity, View, Modal, ActivityIndicator } from 'react-native';
 import { styles } from '../src/styles/appStyles';
 import { Feather } from '@expo/vector-icons';
 import CircularProgress from '../src/components/CircularProgress';
@@ -11,9 +12,69 @@ import { useWaterTracking } from '../src/hooks/useWaterTracking';
 import { useMilestones } from '../src/hooks/useMilestones';
 
 export default function Index() {
-  console.log('🔍 Main app screen loading!'); // Add this line
+  console.log('🎯 INDEX PAGE: Starting to load');
   // Get the current user from our global store
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const profile = useAuthStore((state) => state.profile);
+
+  // Add this right after your useAuthStore selectors
+useEffect(() => {
+  console.log('🚨 INDEX RENDER - Profile changed:', {
+    profile,
+    onboardingComplete: profile?.onboardingComplete,
+    timestamp: new Date().toISOString()
+  });
+}, [profile]);
+
+// Also, let's check if the store is updating
+useEffect(() => {
+  const unsubscribe = useAuthStore.subscribe((state) => {
+    console.log('🔴 STORE SUBSCRIPTION - State changed:', {
+      hasProfile: !!state.profile,
+      onboardingComplete: state.profile?.onboardingComplete,
+      timestamp: new Date().toISOString()
+    });
+  });
+  
+  return unsubscribe;
+}, []);
+
+  console.log('🎯 INDEX PAGE VALUES:', {
+    isLoading,
+    isLoggedIn, 
+    onboardingComplete: profile?.onboardingComplete,
+    hasProfile: !!profile
+  });
+
+  console.log('🎯 SHOULD SHOW MAIN APP?', isLoggedIn && profile?.onboardingComplete);
+
+
+  // Authentication and routing checks - handle these before rendering the main app
+  
+  // Show loading spinner while Firebase checks authentication state
+  if (isLoading) {
+    console.log('🎯 INDEX: Showing loading spinner');
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // Redirect to sign-in if user is not authenticated
+  if (!isLoggedIn) {
+    console.log('🎯 INDEX: Redirecting to sign-in');
+    return <Redirect href="/(auth)/sign-in" />;
+  }
+
+  // Redirect to onboarding if user hasn't completed profile setup
+  if (!profile?.onboardingComplete) {
+    console.log('🎯 INDEX: Redirecting to onboarding');
+    return <Redirect href="/(onboarding)/setup" />;
+  }
+
+  // User is authenticated and onboarding is complete - proceed with main app
   const [isMenuVisible, setIsMenuVisible] = useState(false);
  
   // Use our custom hooks for clean separation of concerns
@@ -38,6 +99,15 @@ export default function Index() {
     console.log('👤 Current user:', authInstance.currentUser?.email || 'Not logged in');
     //console.log('📱 Profile from store:', profile);
   }, [profile]);
+
+  // In app/index.tsx, add this AFTER your existing useEffect
+  useEffect(() => {
+    console.log('🔄 PROFILE CHANGED IN INDEX:', {
+      hasProfile: !!profile,
+      onboardingComplete: profile?.onboardingComplete,
+      timestamp: new Date().toISOString()
+    });
+  }, [profile?.onboardingComplete]); // This will run when onboardingComplete changes
 
 
   // Function to handle the sign-out press

@@ -4,7 +4,7 @@
 import 'expo-dev-client';
 
 import { doc, onSnapshot } from 'firebase/firestore';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, View } from 'react-native';
 import { useEffect } from 'react';
@@ -14,9 +14,8 @@ import { useAuthStore, type UserProfile } from '../src/stores/useAuthStore'; // 
 
 export default function RootLayout() {
   // Get the setUser action from our auth store
-  const { setProfile, isLoading, isLoggedIn, profile } = useAuthStore();
-  const segments = useSegments();
-  const router = useRouter();
+  const { setProfile, isLoading } = useAuthStore();
+
   
   // This useEffect hook sets up the Firebase auth listener.
   // It runs only once when the app starts.
@@ -61,42 +60,6 @@ export default function RootLayout() {
       };
     }, [setProfile]); // Dependency array is unchanged
 
-  // This useEffect hook handles all navigation logic.
-  // It runs whenever the user's login status or the current screen changes. 
-  useEffect(() => {
-    if (isLoading) return;
-
-    const inAuthGroup = segments[0] === '(auth)';
-    const inOnboardingGroup = segments[0] === '(onboarding)';
-
-    // Onboarding Redirection debug block
-    //console.log('🔍 Navigation check:', {
-    //  isLoggedIn,
-    //  onboardingComplete: profile?.onboardingComplete,
-    //  segments: segments[0],
-    //  inAuthGroup,
-    //  inOnboardingGroup
-    //}); 
-
-    // The user is logged in but hasn't completed onboarding
-    if (isLoggedIn && !profile?.onboardingComplete && !inOnboardingGroup) {
-      router.replace('/(onboarding)');
-    } 
-    // The user is logged in AND has completed onboarding
-    //else if (isLoggedIn && profile?.onboardingComplete && (inAuthGroup || inOnboardingGroup)) {
-      // Navigation now handled by onboarding component itself
-      // This condition should not trigger if onboarding navigation works properly
-      //console.log('⚠️ Layout navigation triggered - this should not happen');
-    //} 
-    // The user is not logged in
-    else if (!isLoggedIn && !inAuthGroup) {
-      router.replace('/(auth)/sign-in');
-    }
-  }, [isLoading, isLoggedIn, profile, segments, router]);
-
-  useEffect(() => {
-    console.log('📍 CURRENT ROUTE:', segments.join('/'));
-  }, [segments]);
 
   if (isLoading) {
     // Show a loading indicator while we check for a logged-in user

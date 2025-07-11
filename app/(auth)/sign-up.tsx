@@ -1,6 +1,6 @@
 // app/(auth)/sign-up.tsx
 
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { signUp, db, serverTimestamp } from '../../src/firebase'; // Import signUp and firestore
@@ -19,7 +19,8 @@ export default function SignUpScreen() {
   // State for the form inputs
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false); // Add this line
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   // Function for the sign-up button press
   const onSignUpPressed = async () => {
@@ -50,6 +51,8 @@ export default function SignUpScreen() {
   
         console.log('User signed up and profile created!', user.uid);
         // In a future step, we'll redirect the user.
+        router.replace('/');
+
       }
     } catch (e) {
       Alert.alert('Sign Up Error', (e as any)?.message || 'An unexpected error occurred.');

@@ -265,3 +265,41 @@ await db.collection('users').doc(uid).set({
    };
    ```
    * **Note:** Don't spend time trying to "fix" this permanently - it's an environment limitation, not a code issue.
+
+   ### 14. Expo Router Navigation State Management: Stuck Onboarding Screen
+
+* **Problem:** User completes onboarding successfully (Firestore updates with `onboardingComplete: true`) but remains stuck on the onboarding screen instead of navigating to the main app.
+* **Symptom:** 
+ - Console logs show Firestore updating correctly: `"onboardingComplete": true`
+ - Layout's Firebase listener detects the change and updates Zustand store
+ - But the app remains on the onboarding screen indefinitely
+ - No navigation occurs despite successful state updates
+* **Cause:** **Critical Expo Router limitation**: When a component uses `<Redirect>` to navigate away, that component gets **unmounted** and can no longer react to state changes. The sequence is:
+ 1. Index page renders and sees `onboardingComplete: false`
+ 2. Index page renders `<Redirect href="/(onboarding)/setup" />`
+ 3. **Index component gets unmounted** by Expo Router
+ 4. User completes onboarding, Firestore updates, Zustand store updates
+ 5. **Nobody is listening** - the index component is gone from memory
+* **Root Issue:** `<Redirect>` components are "one-way tickets" in Expo Router. They don't re-evaluate when state changes because the component that rendered them no longer exists.
+* **Solution:** Move navigation responsibility to the **currently active component** that can listen for state changes.
+
+**Implementation Steps:**
+
+1. **In the onboarding screen** (`app/(onboarding)/setup.tsx`), add state-watching navigation:
+  ```typescript
+  import { useRouter } from 'expo-router';
+  import { useEffect } from 'react';
+
+  export default function OnboardingScreen() {
+    const router = useRouter();
+    const profile = useAuthStore((state) => state.profile);
+    
+    // Watch for onboarding completion and navigate
+    useEffect(() => {
+      if (profile?.onboardingComplete) {
+        console.log('🎉 Onboarding complete detected, navigating to home');
+        router.replace('/');
+      }
+    }, [profile?.onboardingComplete, router]);
+
+    // ... rest of component
