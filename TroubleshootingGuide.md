@@ -266,7 +266,7 @@ await db.collection('users').doc(uid).set({
    ```
    * **Note:** Don't spend time trying to "fix" this permanently - it's an environment limitation, not a code issue.
 
-   ### 14. Expo Router Navigation State Management: Stuck Onboarding Screen
+### 14. Expo Router Navigation State Management: Stuck Onboarding Screen
 
 * **Problem:** User completes onboarding successfully (Firestore updates with `onboardingComplete: true`) but remains stuck on the onboarding screen instead of navigating to the main app.
 * **Symptom:** 
