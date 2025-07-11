@@ -1,6 +1,6 @@
 // app/(auth)/sign-in.tsx
 
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import { signIn } from '../../src/firebase'; // Import our new function
@@ -18,6 +18,8 @@ export default function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false); // Add this line
+  const router = useRouter();
+
 
   // Function for the sign-in button press
   const onSignInPressed = async () => {
@@ -33,7 +35,8 @@ export default function SignInScreen() {
         // In a future step, we'll redirect the user.
         if (user) {
             // We'll redirect from here in a future step
-            console.log('User signed in successfully!', user.uid);
+            router.replace('/');
+            console.log('User signed in successfully!', user.uid);        
           }
       }
     } catch (e) {

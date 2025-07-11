@@ -1,77 +1,118 @@
 // app/index.tsx
-import { authInstance,db } from '../src/firebase';
+import { authInstance } from '../src/firebase';
 import { useAuthStore } from '../src/stores/useAuthStore';
+import { Redirect } from 'expo-router'; 
 import React, {useEffect, useState} from 'react';
-import { Text, TouchableOpacity, View } from 'react-native';
-import { styles } from './styles';
+import { Text, TouchableOpacity, View, Modal, ActivityIndicator } from 'react-native';
+import { styles } from '../src/styles/appStyles';
 import { Feather } from '@expo/vector-icons';
 import CircularProgress from '../src/components/CircularProgress';
-import { doc, setDoc, increment, onSnapshot } from 'firebase/firestore';
+import MilestoneModal from '../src/components/MilestoneModal';
+import { useWaterTracking } from '../src/hooks/useWaterTracking';
+import { useMilestones } from '../src/hooks/useMilestones';
 
 export default function Index() {
+  console.log('🎯 INDEX PAGE: Starting to load');
   // Get the current user from our global store
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
   const profile = useAuthStore((state) => state.profile);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dailyProgress, setDailyProgress] = useState({ currentIntake: 0 });
+
+  // Add this right after your useAuthStore selectors
+useEffect(() => {
+  console.log('🚨 INDEX RENDER - Profile changed:', {
+    profile,
+    onboardingComplete: profile?.onboardingComplete,
+    timestamp: new Date().toISOString()
+  });
+}, [profile]);
+
+// Also, let's check if the store is updating
+useEffect(() => {
+  const unsubscribe = useAuthStore.subscribe((state) => {
+    console.log('🔴 STORE SUBSCRIPTION - State changed:', {
+      hasProfile: !!state.profile,
+      onboardingComplete: state.profile?.onboardingComplete,
+      timestamp: new Date().toISOString()
+    });
+  });
+  
+  return unsubscribe;
+}, []);
+
+  console.log('🎯 INDEX PAGE VALUES:', {
+    isLoading,
+    isLoggedIn, 
+    onboardingComplete: profile?.onboardingComplete,
+    hasProfile: !!profile
+  });
+
+  console.log('🎯 SHOULD SHOW MAIN APP?', isLoggedIn && profile?.onboardingComplete);
+
+
+  // Authentication and routing checks - handle these before rendering the main app
+  
+  // Show loading spinner while Firebase checks authentication state
+  if (isLoading) {
+    console.log('🎯 INDEX: Showing loading spinner');
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // Redirect to sign-in if user is not authenticated
+  if (!isLoggedIn) {
+    console.log('🎯 INDEX: Redirecting to sign-in');
+    return <Redirect href="/(auth)/sign-in" />;
+  }
+
+  // Redirect to onboarding if user hasn't completed profile setup
+  if (!profile?.onboardingComplete) {
+    console.log('🎯 INDEX: Redirecting to onboarding');
+    return <Redirect href="/(onboarding)/setup" />;
+  }
+
+  // User is authenticated and onboarding is complete - proceed with main app
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+ 
+  // Use our custom hooks for clean separation of concerns
+  const { 
+    dailyGoal, 
+    currentIntake, 
+    progress, 
+    currentStreak, 
+    isSubmitting, 
+    addWater 
+  } = useWaterTracking();
+
+  const { 
+    showMilestoneModal, 
+    currentMilestone, 
+    handleMilestoneClose 
+  } = useMilestones();
 
   // Add this useEffect for testing
   useEffect(() => {
     console.log('🔥 Firebase Auth connected:', !!authInstance);
     console.log('👤 Current user:', authInstance.currentUser?.email || 'Not logged in');
-    console.log('📱 Profile from store:', profile);
+    //console.log('📱 Profile from store:', profile);
   }, [profile]);
 
-  // This useEffect hook listens for real-time updates to today's progress
+  // In app/index.tsx, add this AFTER your existing useEffect
   useEffect(() => {
-    if (!profile) return;
-
-    const today = new Date().toISOString().split('T')[0];
-    const progressDocRef = doc(db, 'users', profile.uid, 'daily_progress', today);
-
-    // onSnapshot returns an "unsubscribe" function
-    const unsubscribe = onSnapshot(progressDocRef, (docSnap) => {
-      if (docSnap.exists()) {
-        // If the document exists, update our state
-        setDailyProgress({ currentIntake: docSnap.data().currentIntake || 0 });
-      } else {
-        // If the document doesn't exist (e.g., first drink of the day), reset to 0
-        setDailyProgress({ currentIntake: 0 });
-      }
+    console.log('🔄 PROFILE CHANGED IN INDEX:', {
+      hasProfile: !!profile,
+      onboardingComplete: profile?.onboardingComplete,
+      timestamp: new Date().toISOString()
     });
+  }, [profile?.onboardingComplete]); // This will run when onboardingComplete changes
 
-    // Cleanup: unsubscribe from the listener when the component unmounts
-    return () => unsubscribe();
-  }, [profile]); // Rerun this effect if the user profile changes
-
-  // daily goal monitoring
-  const dailyGoal = profile?.hydrationGoal || 2000;
-  const currentIntake = dailyProgress.currentIntake;
-  const progress = dailyGoal > 0 ? currentIntake / dailyGoal : 0;
 
   // Function to handle the sign-out press
   const onSignOutPressed = () => {
     authInstance.signOut();
-  };
-
-    const onAddWaterPressed = async () => {
-    if (!profile) return; // Make sure we have a user
-    setIsSubmitting(true);
-
-    const today = new Date().toISOString().split('T')[0]; // Gets date in YYYY-MM-DD format
-    const progressDocRef = doc(db, 'users', profile.uid, 'daily_progress', today);
-
-    try {
-      // Use setDoc with merge:true to create or update the document.
-      // Use increment to safely add to the existing value.
-      await setDoc(progressDocRef, { 
-        currentIntake: increment(250) 
-      }, { merge: true });
-    } catch (e) {
-      console.error("Failed to log water:", e);
-      // You could add an Alert here if you want
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   return (
@@ -84,13 +125,10 @@ export default function Index() {
         </Text>
       </View>
       <TouchableOpacity
-        onPress={onSignOutPressed}
-        className="flex-row items-center bg-white p-2 rounded-full shadow"
+        onPress={() => setIsMenuVisible(true)}
+        className="bg-white p-2 rounded-full shadow"
       >
-        <Text className="text-charcoal-text font-bold mr-2">
-          Streak: 7
-        </Text>
-        <Text>🔥</Text>
+        <Feather name="settings" size={24} color="#343A40" />
       </TouchableOpacity>
     </View>
 
@@ -109,17 +147,56 @@ export default function Index() {
         <Text className="text-lg text-gray-500">
           {currentIntake} / {dailyGoal} ml
         </Text>
+          {/* Add this new View for the streak */}
+          <View className="flex-row items-center mt-2">
+            <Text className="text-lg font-bold text-coral-accent">{currentStreak}</Text>
+            <Text className="text-lg text-coral-accent ml-1">🔥</Text>
+          </View>
       </CircularProgress>
     </View>
 
     {/* Add Water Button */}
     <TouchableOpacity 
       style={styles.fab}
-      onPress={onAddWaterPressed}
+      onPress={() => addWater()}
       disabled={isSubmitting}
     >
       <Feather name="plus" size={32} color="white" />
     </TouchableOpacity>
+
+    {/* Settings Menu Modal */}
+    <Modal
+        visible={isMenuVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setIsMenuVisible(false)}
+      >
+        <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPressOut={() => setIsMenuVisible(false)}>
+          <View style={styles.menuContainer}>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => {
+                setIsMenuVisible(false);
+                onSignOutPressed();
+              }}
+            >
+              <Text style={styles.menuButtonText}>Log Out</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.menuButton}
+              onPress={() => setIsMenuVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+      {/* Milestone Celebration Modal */}
+      <MilestoneModal
+        visible={showMilestoneModal}
+        milestone={currentMilestone}
+        onClose={handleMilestoneClose}
+      />
   </View>
   );
 }

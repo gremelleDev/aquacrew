@@ -183,3 +183,123 @@ await db.collection('users').doc(uid).set({
     4.  `npm install`
     5.  Restart your code editor after the installation is complete.
 *
+
+### 9. Firebase Functions v2 Deployment and Runtime Errors
+
+* **Problem:** Functions deploy successfully but crash on execution with runtime errors.
+* **Symptom:** Function logs show `TypeError: event.data.data is not a function` or similar property access errors.
+* **Cause:** Firebase Functions v2 uses a different event structure than v1. The `event.data` property is already the document data, not a DocumentSnapshot object with methods.
+* **Solution:** Update data access patterns for v2 API.
+   ```typescript
+   // Incorrect (v1 syntax):
+   const progressData = event.data.data() as DailyProgress;
+   
+   // Correct (v2 syntax):
+   const progressData = event.data as DailyProgress;
+   ```
+
+### 10. ESLint Configuration Conflicts in Firebase Studio
+
+* **Problem:** `firebase deploy --only functions` fails during the predeploy lint step.
+* **Symptom:** Error message: `Invalid option '--ext' - perhaps you meant '-c'? You're using eslint.config.js, some command line flags are no longer available.`
+* **Cause:** Firebase Studio uses ESLint flat config format, which doesn't support traditional command-line flags like `--ext`.
+* **Solution:** Update the lint script in `functions/package.json` to use file patterns instead of flags.
+   ```json
+   // Before:
+   "lint": "eslint --ext .js,.ts ."
+   
+   // After:
+   "lint": "eslint src/**/*.ts"
+   ```
+
+### 11. Firebase Blaze Plan Requirements and Cost Monitoring
+
+* **Problem:** Cloud Functions deployment fails with API enablement errors requiring paid plan.
+* **Symptom:** Error message about missing required APIs like `cloudbuild.googleapis.com` and instructions to upgrade to Blaze plan.
+* **Cause:** Firebase Cloud Functions (especially v2) require the Blaze (pay-as-you-go) plan to enable necessary Google Cloud APIs.
+* **Solution:** Upgrade to Blaze plan and implement strict cost monitoring.
+   1. Upgrade to Blaze plan at Firebase Console → Usage and Billing
+   2. Set up budget alerts at $1, $2, $5 thresholds
+   3. Implement usage monitoring dashboard in your app
+   4. Create emergency killswitch functions for usage limits
+   5. Monitor daily limits: 2M function calls/month, 50K Firestore reads/day, 20K writes/day
+
+### 12. Firebase Functions v2 Import and Type Errors
+
+* **Problem:** TypeScript compilation fails with missing type definitions or import errors.
+* **Symptom:** Errors like `Module has no exported member 'Request'` or `Module has no exported member 'onRequest'`.
+* **Cause:** Firebase Functions v2 has different import paths and type definitions than v1.
+* **Solution:** Use correct import statements for Functions v2.
+   ```typescript
+   // Correct imports for Functions v2:
+   import { onDocumentWritten } from "firebase-functions/v2/firestore";
+   import { onRequest } from "firebase-functions/v2/https";
+   import * as admin from "firebase-admin";
+   import type { FirestoreEvent } from "firebase-functions/v2/firestore";
+   
+   // Function signatures:
+   export const myFunction = onDocumentWritten(
+     "path/{param}",
+     async (event: FirestoreEvent<any>) => {
+       // Use event.data directly, not event.data.data()
+       const data = event.data;
+     }
+   );
+   
+   export const myHttpFunction = onRequest(async (req: any, res: any) => {
+     // Use any types for req/res as specific types aren't exported
+   });
+   ```
+
+### 13. Firebase Studio Cloud IDE Metro Bundling Issues
+
+* **Problem:** Metro bundler shows tslib errors that resolve after browser refresh but reoccur on restart.
+* **Symptom:** Error appears on first bundle but disappears on refresh: `Cannot destructure property '__extends' of '_tslib.default' as it is undefined.`
+* **Cause:** Firebase Studio Cloud IDE has different file system timing than local development, causing race conditions in module resolution.
+* **Solution:** This is a known Firebase Studio quirk. The error is cosmetic and resolves on refresh.
+   * **Workaround 1:** Simply refresh the browser when the error appears
+   * **Workaround 2:** Use more aggressive tslib resolution in metro.config.js:
+   ```javascript
+   config.resolver.alias = {
+     tslib: require.resolve('tslib/tslib.es6.js'),
+   };
+   ```
+   * **Note:** Don't spend time trying to "fix" this permanently - it's an environment limitation, not a code issue.
+
+   ### 14. Expo Router Navigation State Management: Stuck Onboarding Screen
+
+* **Problem:** User completes onboarding successfully (Firestore updates with `onboardingComplete: true`) but remains stuck on the onboarding screen instead of navigating to the main app.
+* **Symptom:** 
+ - Console logs show Firestore updating correctly: `"onboardingComplete": true`
+ - Layout's Firebase listener detects the change and updates Zustand store
+ - But the app remains on the onboarding screen indefinitely
+ - No navigation occurs despite successful state updates
+* **Cause:** **Critical Expo Router limitation**: When a component uses `<Redirect>` to navigate away, that component gets **unmounted** and can no longer react to state changes. The sequence is:
+ 1. Index page renders and sees `onboardingComplete: false`
+ 2. Index page renders `<Redirect href="/(onboarding)/setup" />`
+ 3. **Index component gets unmounted** by Expo Router
+ 4. User completes onboarding, Firestore updates, Zustand store updates
+ 5. **Nobody is listening** - the index component is gone from memory
+* **Root Issue:** `<Redirect>` components are "one-way tickets" in Expo Router. They don't re-evaluate when state changes because the component that rendered them no longer exists.
+* **Solution:** Move navigation responsibility to the **currently active component** that can listen for state changes.
+
+**Implementation Steps:**
+
+1. **In the onboarding screen** (`app/(onboarding)/setup.tsx`), add state-watching navigation:
+  ```typescript
+  import { useRouter } from 'expo-router';
+  import { useEffect } from 'react';
+
+  export default function OnboardingScreen() {
+    const router = useRouter();
+    const profile = useAuthStore((state) => state.profile);
+    
+    // Watch for onboarding completion and navigate
+    useEffect(() => {
+      if (profile?.onboardingComplete) {
+        console.log('🎉 Onboarding complete detected, navigating to home');
+        router.replace('/');
+      }
+    }, [profile?.onboardingComplete, router]);
+
+    // ... rest of component

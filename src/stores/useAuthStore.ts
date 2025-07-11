@@ -10,6 +10,11 @@ export interface UserProfile {
   username: string;
   hydrationGoal: number;
   onboardingComplete: boolean; // The new, important flag
+  // Streak fields
+  currentStreak: number;
+  longestStreak: number;
+  lastGoalAchievedDate: string;
+  unviewedMilestones: string[];
 }
 
 // Define the shape of the store's state
